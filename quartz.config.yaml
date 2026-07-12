@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: Quartz 5
+  pageTitle: Логово Жорича
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
@@ -154,6 +154,8 @@ plugins:
     enabled: true
   - source: github:quartz-community/explorer
     enabled: true
+    options:
+      title: Разделы
     layout:
       position: left
       priority: 50
@@ -225,8 +227,9 @@ plugins:
     enabled: true
     options:
       links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
+        Twitch: https://www.twitch.tv/zhorich_
+        VK Play Live: https://live.vkplay.ru/zhorich_
+        Telegram: https://t.me/zhorichden
   - source: github:quartz-community/recent-notes
     enabled: false
   - source: github:quartz-community/spacer
