@@ -10,8 +10,8 @@ ExternalPlugin.Explorer({
 
     const aSlug = typeof a.data?.slug === "string" ? a.data.slug : ""
     const bSlug = typeof b.data?.slug === "string" ? b.data.slug : ""
-    const aName = aSlug.split("/").filter(Boolean).pop() ?? a.displayName
-    const bName = bSlug.split("/").filter(Boolean).pop() ?? b.displayName
+    const aName = aSlug.split("/").filter(Boolean).pop() ?? a.displayName ?? ""
+    const bName = bSlug.split("/").filter(Boolean).pop() ?? b.displayName ?? ""
     return explorerCollator.compare(aName, bName)
   }) satisfies ExplorerOptions["sortFn"],
 })
