@@ -17,6 +17,14 @@ function markLegacyLiftedTabs(source) {
   const result = []
   let legacyTabDepth = 0
 
+  function removeTrailingRule() {
+    let index = result.length - 1
+    while (index >= 0 && /^\s*$/.test(result[index])) index -= 1
+    if (index >= 0 && /^\s*---\s*$/.test(result[index])) {
+      result.splice(index, 1)
+    }
+  }
+
   for (const line of lines) {
     if (/^\s*:::tab\{type=lifted\}\s*$/.test(line)) {
       legacyTabDepth += 1
@@ -26,6 +34,7 @@ function markLegacyLiftedTabs(source) {
 
     if (legacyTabDepth > 0 && /^\s*:::\s*$/.test(line)) {
       legacyTabDepth -= 1
+      removeTrailingRule()
       result.push('<div class="mixa-tabs-end"></div>')
       continue
     }
@@ -33,6 +42,8 @@ function markLegacyLiftedTabs(source) {
     result.push(line)
   }
 
+  // A rule at the very end of a note duplicates Quartz's footer separator.
+  removeTrailingRule()
   return result.join("\n")
 }
 
