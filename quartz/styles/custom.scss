@@ -71,3 +71,14 @@ body[data-slug$="/index"] .page-listing ul.section-ul {
 body[data-slug$="/index"] .page-listing li.section-li > .section {
   display: block;
 }
+
+// Keep the Explorer's own tree logic intact. The welcome page has a friendly
+// title without its numeric prefix, so place that one link first visually.
+.explorer-content .folder-outer > ul {
+  display: flex;
+  flex-direction: column;
+}
+
+.explorer-content .folder-outer > ul > li:has(> a[href$="/1.-welcome"]) {
+  order: -1;
+}
