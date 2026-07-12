@@ -55,3 +55,19 @@ body[data-slug="index"] blockquote.transclude > .transclude-src {
 .mixa-tab-panel[hidden] {
   display: none !important;
 }
+
+// Folder pages are navigation pages rather than a recent-post feed. The
+// filenames already contain their intended numeric order, so reverse Quartz's
+// date-first listing and omit repetitive dates.
+body[data-slug$="/index"] .page-listing ul.section-ul {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+body[data-slug$="/index"] .page-listing .meta {
+  display: none !important;
+}
+
+body[data-slug$="/index"] .page-listing li.section-li > .section {
+  display: block;
+}

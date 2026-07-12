@@ -6,7 +6,7 @@ configuration:
   enablePopovers: true
   analytics:
     provider: plausible
-  locale: en-US
+  locale: ru-RU
   baseUrl: curiousjoe13.github.io/zhorich-site
   ignorePatterns:
     - private
@@ -150,12 +150,17 @@ plugins:
     enabled: true
   - source: github:quartz-community/folder-page
     enabled: true
+    options:
+      showFolderCount: false
+      showSubfolders: true
   - source: github:quartz-community/tag-page
     enabled: true
   - source: github:quartz-community/explorer
     enabled: true
     options:
       title: Разделы
+      folderDefaultState: open
+      useSavedState: false
     layout:
       position: left
       priority: 50
