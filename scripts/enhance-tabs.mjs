@@ -90,6 +90,17 @@ const script = String.raw`<script>
       tabs.append(nav, panels)
       start.replaceWith(tabs)
       end.remove()
+
+      // Quartz transclusions can hoist Markdown rules that separated source
+      // H1 sections to immediately after the generated tabs container.
+      // Remove only that consecutive group; rules elsewhere stay untouched.
+      let trailing = tabs.nextElementSibling
+      while (trailing && trailing.tagName === 'HR') {
+        const next = trailing.nextElementSibling
+        trailing.remove()
+        trailing = next
+      }
+
       tabs.dataset.ready = 'true'
     })
   }
