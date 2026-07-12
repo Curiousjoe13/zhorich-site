@@ -126,10 +126,23 @@ const script = String.raw`<script>
     setupMixaTabs()
   }
 
-  document.addEventListener('DOMContentLoaded', setupSiteEnhancements)
+  function initializeExplorer() {
+    const list = document.querySelector('.explorer-ul')
+    if (!list || list.querySelector('.folder-container, a.nav-file-title')) return
+
+    document.dispatchEvent(new CustomEvent('render', {
+      detail: { url: location.pathname.replace(/^\//, '') }
+    }))
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupSiteEnhancements()
+    initializeExplorer()
+  })
   document.addEventListener('nav', setupSiteEnhancements)
   setupFolderListings()
   setupMixaTabs()
+  initializeExplorer()
 })()
 </script>`
 
