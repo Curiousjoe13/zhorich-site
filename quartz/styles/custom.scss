@@ -61,7 +61,7 @@ body[data-slug="index"] blockquote.transclude > .transclude-src {
 // date-first listing and omit repetitive dates.
 body[data-slug$="/index"] .page-listing ul.section-ul {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
 }
 
 body[data-slug$="/index"] .page-listing .meta {

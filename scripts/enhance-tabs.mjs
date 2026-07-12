@@ -14,6 +14,22 @@ async function* htmlFiles(directory) {
 
 const script = String.raw`<script>
 (() => {
+  function setupFolderListings() {
+    const collator = new Intl.Collator('ru', { numeric: true, sensitivity: 'base' })
+    document.querySelectorAll('.page-listing ul.section-ul:not([data-sorted])').forEach((list) => {
+      const items = Array.from(list.children)
+      items.sort((a, b) => {
+        const aHref = a.querySelector('a.internal')?.getAttribute('href') || ''
+        const bHref = b.querySelector('a.internal')?.getAttribute('href') || ''
+        const aSlug = decodeURIComponent(aHref).split('/').filter(Boolean).pop() || ''
+        const bSlug = decodeURIComponent(bHref).split('/').filter(Boolean).pop() || ''
+        return collator.compare(aSlug, bSlug)
+      })
+      items.forEach((item) => list.appendChild(item))
+      list.dataset.sorted = 'true'
+    })
+  }
+
   function setupMixaTabs() {
     document.querySelectorAll('.mixa-tabs-start:not([data-ready])').forEach((start, groupIndex) => {
       const end = Array.from(start.parentElement.children)
@@ -105,8 +121,14 @@ const script = String.raw`<script>
     })
   }
 
-  document.addEventListener('DOMContentLoaded', setupMixaTabs)
-  document.addEventListener('nav', setupMixaTabs)
+  function setupSiteEnhancements() {
+    setupFolderListings()
+    setupMixaTabs()
+  }
+
+  document.addEventListener('DOMContentLoaded', setupSiteEnhancements)
+  document.addEventListener('nav', setupSiteEnhancements)
+  setupFolderListings()
   setupMixaTabs()
 })()
 </script>`
@@ -114,7 +136,7 @@ const script = String.raw`<script>
 let changed = 0
 for await (const file of htmlFiles(publicRoot)) {
   const source = await readFile(file, "utf8")
-  if (!source.includes("mixa-tabs-start") || source.includes("setupMixaTabs")) continue
+  if (source.includes("setupMixaTabs")) continue
   const prepared = source.replace("</body>", `${script}</body>`)
   await writeFile(file, prepared, "utf8")
   changed += 1
