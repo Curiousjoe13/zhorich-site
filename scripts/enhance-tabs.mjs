@@ -51,6 +51,16 @@ const script = String.raw`<script>
       panels.className = 'mixa-tabs-panels'
 
       sections.forEach((item, index) => {
+        // In Mixa notes, a Markdown horizontal rule is commonly placed before the next
+        // H1 for readability. It should separate source sections, not appear
+        // as a line at the bottom of the resulting tab.
+        while (item.nodes.length && item.nodes[item.nodes.length - 1].nodeType === 3 && !item.nodes[item.nodes.length - 1].textContent.trim()) {
+          item.nodes.pop()
+        }
+        if (item.nodes.length && item.nodes[item.nodes.length - 1].nodeType === 1 && item.nodes[item.nodes.length - 1].tagName === 'HR') {
+          item.nodes.pop()
+        }
+
         const id = 'mixa-tab-' + groupIndex + '-' + index
         const button = document.createElement('button')
         button.type = 'button'
