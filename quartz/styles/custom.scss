@@ -1,3 +1,14 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+// The home page embeds the Welcome note. Present that transclusion as the
+// page body instead of as a quoted/linked embed.
+body[data-slug="index"] blockquote.transclude {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+  margin-inline: 0;
+}
+
+body[data-slug="index"] blockquote.transclude > h1:first-child,
+body[data-slug="index"] blockquote.transclude > .transclude-src {
+  display: none;
+}
