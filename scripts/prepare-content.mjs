@@ -12,7 +12,7 @@ async function* markdownFiles(directory) {
   }
 }
 
-function removeLegacyLiftedTabs(source) {
+function markLegacyLiftedTabs(source) {
   const lines = source.split(/\r?\n/)
   const result = []
   let legacyTabDepth = 0
@@ -20,11 +20,13 @@ function removeLegacyLiftedTabs(source) {
   for (const line of lines) {
     if (/^\s*:::tab\{type=lifted\}\s*$/.test(line)) {
       legacyTabDepth += 1
+      result.push('<div class="mixa-tabs-start" data-tabs-style="lifted"></div>')
       continue
     }
 
     if (legacyTabDepth > 0 && /^\s*:::\s*$/.test(line)) {
       legacyTabDepth -= 1
+      result.push('<div class="mixa-tabs-end"></div>')
       continue
     }
 
@@ -37,7 +39,7 @@ function removeLegacyLiftedTabs(source) {
 let changed = 0
 for await (const file of markdownFiles(contentRoot)) {
   const source = await readFile(file, "utf8")
-  const prepared = removeLegacyLiftedTabs(source)
+  const prepared = markLegacyLiftedTabs(source)
   if (prepared !== source) {
     await writeFile(file, prepared, "utf8")
     changed += 1

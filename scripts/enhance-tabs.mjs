@@ -1,0 +1,102 @@
+import { readdir, readFile, writeFile } from "node:fs/promises"
+import { join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+const publicRoot = fileURLToPath(new URL("../public/", import.meta.url))
+
+async function* htmlFiles(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name)
+    if (entry.isDirectory()) yield* htmlFiles(path)
+    else if (entry.isFile() && entry.name.endsWith(".html")) yield path
+  }
+}
+
+const script = String.raw`<script>
+(() => {
+  function setupMixaTabs() {
+    document.querySelectorAll('.mixa-tabs-start:not([data-ready])').forEach((start, groupIndex) => {
+      const end = Array.from(start.parentElement.children)
+        .slice(Array.from(start.parentElement.children).indexOf(start) + 1)
+        .find((node) => node.classList && node.classList.contains('mixa-tabs-end'))
+      if (!end) return
+
+      const nodes = []
+      let current = start.nextSibling
+      while (current && current !== end) {
+        const next = current.nextSibling
+        nodes.push(current)
+        current = next
+      }
+
+      const sections = []
+      let section = null
+      for (const node of nodes) {
+        if (node.nodeType === 1 && node.tagName === 'H1') {
+          section = { title: node.textContent.trim(), nodes: [] }
+          sections.push(section)
+          node.remove()
+        } else if (section) {
+          section.nodes.push(node)
+        }
+      }
+      if (sections.length < 2) return
+
+      const tabs = document.createElement('div')
+      tabs.className = 'mixa-tabs mixa-tabs-lifted'
+      const nav = document.createElement('div')
+      nav.className = 'mixa-tabs-nav'
+      nav.setAttribute('role', 'tablist')
+      const panels = document.createElement('div')
+      panels.className = 'mixa-tabs-panels'
+
+      sections.forEach((item, index) => {
+        const id = 'mixa-tab-' + groupIndex + '-' + index
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'mixa-tab-button'
+        button.textContent = item.title
+        button.setAttribute('role', 'tab')
+        button.setAttribute('aria-controls', id)
+        button.setAttribute('aria-selected', index === 0 ? 'true' : 'false')
+
+        const panel = document.createElement('section')
+        panel.id = id
+        panel.className = 'mixa-tab-panel'
+        panel.setAttribute('role', 'tabpanel')
+        panel.hidden = index !== 0
+        item.nodes.forEach((node) => panel.appendChild(node))
+
+        button.addEventListener('click', () => {
+          nav.querySelectorAll('[role="tab"]').forEach((tab) => tab.setAttribute('aria-selected', 'false'))
+          panels.querySelectorAll('[role="tabpanel"]').forEach((candidate) => { candidate.hidden = true })
+          button.setAttribute('aria-selected', 'true')
+          panel.hidden = false
+        })
+        nav.appendChild(button)
+        panels.appendChild(panel)
+      })
+
+      tabs.append(nav, panels)
+      start.replaceWith(tabs)
+      end.remove()
+      tabs.dataset.ready = 'true'
+    })
+  }
+
+  document.addEventListener('DOMContentLoaded', setupMixaTabs)
+  document.addEventListener('nav', setupMixaTabs)
+  setupMixaTabs()
+})()
+</script>`
+
+let changed = 0
+for await (const file of htmlFiles(publicRoot)) {
+  const source = await readFile(file, "utf8")
+  if (!source.includes("mixa-tabs-start") || source.includes("setupMixaTabs")) continue
+  const prepared = source.replace("</body>", `${script}</body>`)
+  await writeFile(file, prepared, "utf8")
+  changed += 1
+}
+
+console.log(`Enhanced lifted tabs in ${changed} HTML file(s)`)

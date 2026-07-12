@@ -10,7 +10,48 @@ body[data-slug="index"] blockquote.transclude {
 }
 
 body[data-slug="index"] .page-header,
-body[data-slug="index"] blockquote.transclude > h1:first-of-type,
 body[data-slug="index"] blockquote.transclude > .transclude-src {
+  display: none !important;
+}
+
+.mixa-tabs {
+  margin: 1.5rem 0;
+}
+
+.mixa-tabs-nav {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.35rem 0.35rem 0;
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.mixa-tab-button {
+  appearance: none;
+  border: 1px solid var(--lightgray);
+  border-bottom: 0;
+  border-radius: 0.7rem 0.7rem 0 0;
+  background: var(--lightgray);
+  color: var(--darkgray);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0.65rem 1rem;
+  transform: translateY(1px);
+}
+
+.mixa-tab-button[aria-selected="true"] {
+  background: var(--light);
+  color: var(--secondary);
+  box-shadow: 0 -0.2rem 0 var(--secondary);
+}
+
+.mixa-tabs-panels {
+  padding-top: 1rem;
+}
+
+.mixa-tab-panel[hidden] {
   display: none !important;
 }
