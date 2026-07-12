@@ -3,12 +3,14 @@
 // The home page embeds the Welcome note. Present that transclusion as the
 // page body instead of as a quoted/linked embed.
 body[data-slug="index"] blockquote.transclude {
-  border-inline-start: 0;
-  padding-inline-start: 0;
-  margin-inline: 0;
+  border: 0 !important;
+  border-left: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-body[data-slug="index"] blockquote.transclude > h1:first-child,
+body[data-slug="index"] .page-header,
+body[data-slug="index"] blockquote.transclude > h1:first-of-type,
 body[data-slug="index"] blockquote.transclude > .transclude-src {
-  display: none;
+  display: none !important;
 }
