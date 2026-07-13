@@ -1,5 +1,92 @@
 @use "./variables.scss" as *;
 
+// Lightweight red-coral visual theme. This intentionally changes only
+// presentation: the page structure, Markdown and interactive components stay
+// under Quartz's control.
+a,
+button,
+svg,
+.explorer-content li {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at top center,
+      color-mix(in srgb, var(--secondary) 7%, transparent),
+      transparent 32rem
+    ),
+    var(--light);
+}
+
+.page-title a {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+a {
+  text-decoration-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--tertiary);
+}
+
+article h2 {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--secondary) 30%, var(--lightgray));
+}
+
+article h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 0.9em;
+  margin-right: 0.55rem;
+  border-radius: 999px;
+  background: var(--secondary);
+}
+
+article img {
+  border: 1px solid color-mix(in srgb, var(--secondary) 18%, var(--lightgray));
+  border-radius: 12px;
+}
+
+.explorer-content a {
+  padding: 0.18rem 0.35rem;
+  border-radius: 6px;
+}
+
+.explorer-content a:hover {
+  background: color-mix(in srgb, var(--secondary) 10%, transparent);
+}
+
+blockquote {
+  border-left-color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 6%, transparent);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--secondary) 32%, transparent);
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--secondary) 45%, var(--lightgray)),
+    transparent
+  );
+}
+
 // The home page embeds the Welcome note. Present that transclusion as the
 // page body instead of as a quoted/linked embed.
 body[data-slug="index"] blockquote.transclude {
