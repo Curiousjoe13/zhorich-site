@@ -270,7 +270,10 @@ plugins:
       name: quartz-themes
       repo: github:saberzero1/quartz-themes
       subdir: plugin
-    enabled: true
+    # The bundled "default" theme rewrites Quartz's palette after our own
+    # configuration. Keep the plugin available, but let the site use the
+    # lightweight red-coral colors defined above.
+    enabled: false
     options:
       theme: default
   - source: github:quartz-community/obsidian-plugin-excalidraw
