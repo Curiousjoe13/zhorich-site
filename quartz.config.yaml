@@ -13,11 +13,13 @@ configuration:
     - templates
     - .obsidian
   theme:
-    fontOrigin: googleFonts
+    # Serve the fonts with the site so typography does not depend on Google
+    # Fonts being reachable from the visitor's network.
+    fontOrigin: local
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
+      header: Exo 2
+      body: Inter
       code: IBM Plex Mono
     colors:
       lightMode:
@@ -110,6 +112,25 @@ plugins:
     order: 92
   - source: github:quartz-community/fonts
     enabled: true
+    options:
+      useThemeFonts: false
+      fontOrigin: selfHosted
+      title:
+        name: Exo 2
+        weights: [600, 700, 800]
+      header:
+        name: Exo 2
+        weights: [500, 600, 700, 800]
+      body:
+        name: Inter
+        weights: [400, 500, 600, 700]
+        includeItalic: true
+      interface:
+        name: Inter
+        weights: [400, 500, 600, 700]
+      code:
+        name: IBM Plex Mono
+        weights: [400, 600]
   - source: github:quartz-community/remove-draft
     enabled: true
   - source: github:quartz-community/explicit-publish
@@ -160,6 +181,7 @@ plugins:
     options:
       title: Разделы
       folderDefaultState: open
+      folderClickBehavior: collapse
       useSavedState: false
     layout:
       position: left

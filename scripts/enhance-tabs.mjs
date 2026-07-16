@@ -121,17 +121,46 @@ const script = String.raw`<script>
     })
   }
 
+  function setupHeadingIcons() {
+    const emoji = /^(\p{Extended_Pictographic}(?:\uFE0E|\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0E|\uFE0F)?)*)\s*/u
+    document.querySelectorAll('article h1:not([data-icon-ready]), article h2:not([data-icon-ready]), article h3:not([data-icon-ready])').forEach((heading) => {
+      heading.dataset.iconReady = 'true'
+      const first = heading.firstChild
+      if (!first || first.nodeType !== Node.TEXT_NODE) return
+      const match = first.textContent.match(emoji)
+      if (!match) return
+
+      const icon = document.createElement('span')
+      icon.className = 'heading-icon'
+      icon.setAttribute('aria-hidden', 'true')
+      icon.textContent = match[1]
+      first.textContent = first.textContent.slice(match[0].length)
+      heading.insertBefore(icon, first)
+    })
+  }
+
+  function setupTables() {
+    document.querySelectorAll('.table-container table:not([data-layout-ready])').forEach((table) => {
+      const headings = Array.from(table.querySelectorAll('thead th')).map((cell) => cell.textContent.trim().toLocaleLowerCase('ru'))
+      if (headings.includes('№') && headings.includes('игра')) table.classList.add('game-queue-table')
+      if (headings.includes('босс')) table.classList.add('boss-stats-table')
+      table.dataset.layoutReady = 'true'
+    })
+  }
+
   function setupSiteEnhancements() {
     setupFolderListings()
     setupMixaTabs()
+    setupHeadingIcons()
+    setupTables()
   }
 
   function initializeExplorer() {
     const list = document.querySelector('.explorer-ul')
     if (!list || list.querySelector('.folder-container, a.nav-file-title')) return
 
-    document.dispatchEvent(new CustomEvent('render', {
-      detail: { url: location.pathname.replace(/^\//, '') }
+    document.dispatchEvent(new CustomEvent('nav', {
+      detail: { url: document.body.dataset.slug || 'index' }
     }))
   }
 
@@ -142,6 +171,8 @@ const script = String.raw`<script>
   document.addEventListener('nav', setupSiteEnhancements)
   setupFolderListings()
   setupMixaTabs()
+  setupHeadingIcons()
+  setupTables()
   initializeExplorer()
 })()
 </script>`
