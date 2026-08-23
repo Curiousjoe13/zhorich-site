@@ -58,6 +58,22 @@ const script = String.raw`<script>
       }
       if (sections.length < 2) return
 
+      // Keep the Obsidian note ordered as a historical document, but present the
+      // two main game queues in the order that is useful on the site: the current
+      // queue first, followed by the completed archive. Other queues retain their
+      // original relative order.
+      const completedQueueIndex = sections.findIndex((item) => /основная очередь игр\s*1$/iu.test(item.title))
+      const currentQueueIndex = sections.findIndex((item) => /основная очередь игр\s*2$/iu.test(item.title))
+      if (completedQueueIndex !== -1 && currentQueueIndex !== -1) {
+        const completedQueue = sections[completedQueueIndex]
+        const currentQueue = sections[currentQueueIndex]
+        completedQueue.title = 'Пройдено'
+        currentQueue.title = 'В процессе'
+
+        const remainingQueues = sections.filter((item) => item !== completedQueue && item !== currentQueue)
+        sections.splice(0, sections.length, currentQueue, completedQueue, ...remainingQueues)
+      }
+
       const tabs = document.createElement('div')
       tabs.className = 'mixa-tabs mixa-tabs-lifted'
       const nav = document.createElement('div')
