@@ -59,9 +59,8 @@ const script = String.raw`<script>
       if (sections.length < 2) return
 
       // The highest numbered "Основная очередь игр N" is always the current
-      // queue. Older numbered queues are combined into one archive tab at the
-      // end, while specialised queues retain their original relative order.
-      // This keeps future queue increments entirely inside the Obsidian note.
+      // queue. Completed/dropped rows from it and every older numbered queue are
+      // rendered as one archive table. The source Markdown tables stay untouched.
       const numberedMainQueues = sections
         .map((item, sourceIndex) => {
           const match = item.title.match(/основная очередь игр\s*(\d+)\s*$/iu)
@@ -72,26 +71,119 @@ const script = String.raw`<script>
 
       if (numberedMainQueues.length) {
         const currentQueue = numberedMainQueues[numberedMainQueues.length - 1].item
-        const completedQueues = numberedMainQueues.slice(0, -1)
         const mainQueueSections = new Set(numberedMainQueues.map((entry) => entry.item))
         const specialisedQueues = sections.filter((item) => !mainQueueSections.has(item))
-        currentQueue.title = 'В процессе'
 
-        const orderedSections = [currentQueue, ...specialisedQueues]
-        if (completedQueues.length) {
-          const completedArchive = { title: 'Пройдено', nodes: [] }
-          completedQueues.forEach(({ item }) => {
-            if (completedQueues.length > 1) {
-              const heading = document.createElement('h2')
-              heading.textContent = item.title
-              completedArchive.nodes.push(heading)
-            }
-            completedArchive.nodes.push(...item.nodes)
+        const queueTables = numberedMainQueues.map(({ item, number }) => {
+          const container = item.nodes.find((node) => {
+            if (node.nodeType !== 1) return false
+            return node.tagName === 'TABLE' || Boolean(node.querySelector('table'))
           })
-          orderedSections.push(completedArchive)
-        }
+          const table = container?.tagName === 'TABLE' ? container : container?.querySelector('table')
+          const headings = table
+            ? Array.from(table.querySelectorAll('thead th'), (cell) => cell.textContent.trim().toLocaleLowerCase('ru'))
+            : []
+          return {
+            item,
+            number,
+            container,
+            table,
+            gameIndex: headings.indexOf('игра'),
+            statusIndex: headings.indexOf('статус'),
+          }
+        })
 
-        sections.splice(0, sections.length, ...orderedSections)
+        const currentTable = queueTables[queueTables.length - 1]
+        if (currentTable?.table) {
+          const archiveRows = []
+          const activeRows = []
+
+          function cellParts(cell) {
+            const parts = [[]]
+            cell.childNodes.forEach((node) => {
+              if (node.nodeType === 1 && node.tagName === 'BR') parts.push([])
+              else parts[parts.length - 1].push(node.cloneNode(true))
+            })
+            while (parts.length > 1 && !parts[parts.length - 1].some((node) => {
+              return node.nodeType === 1 || node.textContent.trim()
+            })) parts.pop()
+            return parts
+          }
+
+          function splitCombinedRow(sourceRow, gameIndex, statusIndex) {
+            const cells = Array.from(sourceRow.cells)
+            const parts = cells.map(cellParts)
+            const relevantCounts = [gameIndex, statusIndex]
+              .filter((index) => index >= 0)
+              .map((index) => parts[index].length)
+            const partCount = Math.max(1, ...relevantCounts)
+            if (partCount === 1) return [sourceRow.cloneNode(true)]
+
+            return Array.from({ length: partCount }, (_, partIndex) => {
+              const row = sourceRow.cloneNode(true)
+              Array.from(row.cells).forEach((cell, cellIndex) => {
+                if (cellIndex === 0) return
+                const variants = parts[cellIndex]
+                const selected = variants.length === 1
+                  ? variants[0]
+                  : variants[partIndex] || []
+                cell.replaceChildren(...selected.map((node) => node.cloneNode(true)))
+              })
+              return row
+            })
+          }
+
+          queueTables.forEach((queue) => {
+            if (!queue.table) return
+            const isCurrent = queue === currentTable
+            queue.table.querySelectorAll('tbody tr').forEach((sourceRow) => {
+              splitCombinedRow(sourceRow, queue.gameIndex, queue.statusIndex).forEach((row) => {
+                const status = queue.statusIndex === -1 ? '' : row.cells[queue.statusIndex]?.textContent || ''
+                const isFinished = /[✅❌]/u.test(status)
+                if (!isCurrent || isFinished) archiveRows.push(row)
+                else activeRows.push(row)
+              })
+            })
+          })
+
+          function renumber(rows) {
+            let number = 0
+            rows.forEach((row) => {
+              const numberCell = row.cells[0]
+              if (!numberCell || !/^\d+$/.test(numberCell.textContent.trim())) return
+              numberCell.textContent = String(++number)
+            })
+          }
+
+          function tableWithRows(source, rows) {
+            const container = source.container.cloneNode(true)
+            const table = container.tagName === 'TABLE' ? container : container.querySelector('table')
+            const body = table.tBodies[0] || table.createTBody()
+            body.replaceChildren(...rows)
+            return container
+          }
+
+          renumber(activeRows)
+          renumber(archiveRows)
+          currentQueue.title = 'В процессе'
+          currentQueue.nodes = [
+            tableWithRows(currentTable, activeRows),
+            ...currentQueue.nodes.filter((node) => {
+              if (node === currentTable.container) return false
+              return !(node.nodeType === 1 && /^H[1-6]$/.test(node.tagName) && /полный список прохождений/iu.test(node.textContent))
+            }),
+          ]
+
+          const orderedSections = [currentQueue, ...specialisedQueues]
+          if (archiveRows.length) {
+            orderedSections.push({
+              title: 'Пройдено',
+              nodes: [tableWithRows(currentTable, archiveRows)],
+            })
+          }
+
+          sections.splice(0, sections.length, ...orderedSections)
+        }
       }
 
       const tabs = document.createElement('div')
