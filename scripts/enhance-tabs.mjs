@@ -166,12 +166,15 @@ const script = String.raw`<script>
           renumber(activeRows)
           renumber(archiveRows)
           currentQueue.title = 'В процессе'
+          const sourceMainQueueNodes = numberedMainQueues.flatMap(({ item }) => item.nodes)
+          const currentSupportingNodes = currentQueue.nodes.filter((node) => {
+            if (node === currentTable.container) return false
+            return !(node.nodeType === 1 && /^H[1-6]$/.test(node.tagName) && /полный список прохождений/iu.test(node.textContent))
+          })
+          sourceMainQueueNodes.forEach((node) => node.parentNode?.removeChild(node))
           currentQueue.nodes = [
             tableWithRows(currentTable, activeRows),
-            ...currentQueue.nodes.filter((node) => {
-              if (node === currentTable.container) return false
-              return !(node.nodeType === 1 && /^H[1-6]$/.test(node.tagName) && /полный список прохождений/iu.test(node.textContent))
-            }),
+            ...currentSupportingNodes,
           ]
 
           const orderedSections = [currentQueue, ...specialisedQueues]
