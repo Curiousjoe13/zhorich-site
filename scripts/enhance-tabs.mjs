@@ -58,20 +58,40 @@ const script = String.raw`<script>
       }
       if (sections.length < 2) return
 
-      // Keep the Obsidian note ordered as a historical document, but present the
-      // two main game queues in the order that is useful on the site: the current
-      // queue first, followed by the completed archive. Other queues retain their
-      // original relative order.
-      const completedQueueIndex = sections.findIndex((item) => /основная очередь игр\s*1$/iu.test(item.title))
-      const currentQueueIndex = sections.findIndex((item) => /основная очередь игр\s*2$/iu.test(item.title))
-      if (completedQueueIndex !== -1 && currentQueueIndex !== -1) {
-        const completedQueue = sections[completedQueueIndex]
-        const currentQueue = sections[currentQueueIndex]
-        completedQueue.title = 'Пройдено'
+      // The highest numbered "Основная очередь игр N" is always the current
+      // queue. Older numbered queues are combined into one archive tab at the
+      // end, while specialised queues retain their original relative order.
+      // This keeps future queue increments entirely inside the Obsidian note.
+      const numberedMainQueues = sections
+        .map((item, sourceIndex) => {
+          const match = item.title.match(/основная очередь игр\s*(\d+)\s*$/iu)
+          return match ? { item, number: Number(match[1]), sourceIndex } : null
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.number - b.number || a.sourceIndex - b.sourceIndex)
+
+      if (numberedMainQueues.length) {
+        const currentQueue = numberedMainQueues[numberedMainQueues.length - 1].item
+        const completedQueues = numberedMainQueues.slice(0, -1)
+        const mainQueueSections = new Set(numberedMainQueues.map((entry) => entry.item))
+        const specialisedQueues = sections.filter((item) => !mainQueueSections.has(item))
         currentQueue.title = 'В процессе'
 
-        const remainingQueues = sections.filter((item) => item !== completedQueue && item !== currentQueue)
-        sections.splice(0, sections.length, currentQueue, completedQueue, ...remainingQueues)
+        const orderedSections = [currentQueue, ...specialisedQueues]
+        if (completedQueues.length) {
+          const completedArchive = { title: 'Пройдено', nodes: [] }
+          completedQueues.forEach(({ item }) => {
+            if (completedQueues.length > 1) {
+              const heading = document.createElement('h2')
+              heading.textContent = item.title
+              completedArchive.nodes.push(heading)
+            }
+            completedArchive.nodes.push(...item.nodes)
+          })
+          orderedSections.push(completedArchive)
+        }
+
+        sections.splice(0, sections.length, ...orderedSections)
       }
 
       const tabs = document.createElement('div')
